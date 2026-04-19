@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIエージェント 知識マップ</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --accent: #7c6aff;
+      --accent2: #00c8a0;
+      --text: #e2e4f0;
+      --muted: #8b8fa8;
+      --claude: #d4770c;
+      --codex: #10a37f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.7;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 2rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; }
+    header p { color: var(--muted); margin-top: .4rem; }
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+    section { margin-bottom: 3.5rem; }
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      border-left: 3px solid var(--accent);
+      padding-left: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    h3 { font-size: 1rem; color: var(--accent); margin-bottom: .5rem; }
+
+    /* ── Agent Formula ── */
+    .formula {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .formula .term {
+      background: var(--accent);
+      color: #fff;
+      padding: .35rem .9rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: .95rem;
+    }
+    .formula .op { color: var(--muted); font-size: 1.3rem; font-weight: 300; }
+
+    /* ── 4-card grid ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.25rem 1rem;
+    }
+    .card .icon { font-size: 1.5rem; margin-bottom: .5rem; }
+    .card h3 { color: var(--accent2); }
+    .card p { font-size: .88rem; color: var(--muted); margin-top: .3rem; }
+
+    /* ── Agentic Loop Flow ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+      overflow-x: auto;
+    }
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .3rem;
+      min-width: 90px;
+    }
+    .flow-step .circle {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .flow-step .label {
+      font-size: .8rem;
+      color: var(--muted);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .flow-step .desc {
+      font-size: .75rem;
+      color: var(--text);
+      text-align: center;
+      max-width: 88px;
+    }
+    .arrow { color: var(--border); font-size: 1.5rem; padding: 0 .25rem; }
+
+    /* ── Tool Types table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .9rem;
+    }
+    th {
+      text-align: left;
+      padding: .6rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    td {
+      padding: .6rem 1rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    tr:nth-child(odd) td { background: var(--surface); }
+    tr:nth-child(even) td { background: var(--bg); }
+    td strong { color: var(--text); }
+
+    /* ── Tool Comparison ── */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .compare-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .compare-card.claude { border-top: 3px solid var(--claude); }
+    .compare-card.codex  { border-top: 3px solid var(--codex); }
+    .compare-card .brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: .75rem;
+    }
+    .compare-card.claude .brand { color: var(--claude); }
+    .compare-card.codex  .brand { color: var(--codex); }
+    .compare-card ul { padding-left: 1.2rem; }
+    .compare-card li { font-size: .88rem; color: var(--muted); margin-bottom: .35rem; }
+    .compare-card li strong { color: var(--text); }
+
+    /* ── Links ── */
+    .links { display: flex; flex-direction: column; gap: .5rem; }
+    .links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .links a::before { content: "→"; color: var(--muted); }
+    .links a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .compare { grid-template-columns: 1fr; }
+      .flow { gap: .5rem; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>AIエージェント 知識マップ</h1>
+  <p>Claude Code / Codex を活用するために必要な大枠の概念を整理したリファレンス</p>
+</header>
+<main>
+
+  <!-- 1. AIエージェントの定義 -->
+  <section>
+    <h2>1. AIエージェントとは</h2>
+    <div class="formula">
+      <span class="term">LLM</span>
+      <span class="op">+</span>
+      <span class="term">Memory</span>
+      <span class="op">+</span>
+      <span class="term">Planning</span>
+      <span class="op">+</span>
+      <span class="term">Tools</span>
+      <span class="op">=</span>
+      <span class="term" style="background:var(--accent2)">AI Agent</span>
+    </div>
+    <p style="color:var(--muted); font-size:.9rem;">
+      AIエージェントは「目標を理解し→計画を立て→行動し→結果を評価し→完了まで繰り返す」自律的なシステム。
+      単なるチャットボットと異なり、ツールを呼び出して現実世界に作用する。
+    </p>
+  </section>
+
+  <!-- 2. 4大コンポーネント -->
+  <section>
+    <h2>2. 4 つのコアコンポーネント</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">🧠</div>
+        <h3>LLM（推論エンジン）</h3>
+        <p>入力を解釈し、次に取るべき行動を決定する中枢。Claude / GPT-5 などのモデルが担う。</p>
+      </div>
+      <div class="card">
+        <div class="icon">💾</div>
+        <h3>Memory（記憶）</h3>
+        <p>In-context（会話履歴）・External（DB）・Episodic（過去の経験）の3層。なければ毎回ゼロスタート。</p>
+      </div>
+      <div class="card">
+        <div class="icon">📋</div>
+        <h3>Planning（計画）</h3>
+        <p>複雑なタスクを小タスクへ分解し、実行順序を決める。ReAct・CoT・Task Decomposition が代表的手法。</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔧</div>
+        <h3>Tools（ツール）</h3>
+        <p>コード実行・ファイル操作・Web検索・API呼び出しなど、外部世界と接続する「手」。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Agentic Loop -->
+  <section>
+    <h2>3. Agentic Loop（エージェントの動作サイクル）</h2>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="circle">👁️</div>
+        <div class="label">Perceive</div>
+        <div class="desc">入力・コンテキストを受け取る</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-step">
+        <div class="circle">🤔</div>
+        <div class="label">Reason</div>
+        <div class="desc">LLMが状況を分析・判断</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-step">
+        <div class="circle">📋</div>
+        <div class="label">Plan</div>
+        <div class="desc">サブタスクへ分解・順序付け</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-step">
+        <div class="circle">⚡</div>
+        <div class="label">Act</div>
+        <div class="desc">ツール呼び出し・コード実行</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-step">
+        <div class="circle">🔍</div>
+        <div class="label">Observe</div>
+        <div class="desc">結果を確認・評価</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-step" style="opacity:.6">
+        <div class="circle" style="background:var(--border)">🔁</div>
+        <div class="label">Repeat</div>
+        <div class="desc">完了まで繰り返す</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. ツール種別 -->
+  <section>
+    <h2>4. よく使われるツール種別</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>カテゴリ</th>
+          <th>例</th>
+          <th>役割</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Code Execution</strong></td>
+          <td>Python REPL, Shell</td>
+          <td>コードを実行して結果を取得する</td>
+        </tr>
+        <tr>
+          <td><strong>File I/O</strong></td>
+          <td>Read, Write, Edit</td>
+          <td>ファイルの読み書き・編集</td>
+        </tr>
+        <tr>
+          <td><strong>Web / Search</strong></td>
+          <td>Web Search, Browser</td>
+          <td>最新情報の取得・ページ操作</td>
+        </tr>
+        <tr>
+          <td><strong>External API</strong></td>
+          <td>GitHub, Jira, Slack</td>
+          <td>外部サービスとの連携</td>
+        </tr>
+        <tr>
+          <td><strong>Sub-Agent</strong></td>
+          <td>Spawn Agent, Delegate</td>
+          <td>別のエージェントにタスクを委譲</td>
+        </tr>
+        <tr>
+          <td><strong>Memory Store</strong></td>
+          <td>Vector DB, KV Store</td>
+          <td>情報を永続化・検索する</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 5. Claude Code vs Codex -->
+  <section>
+    <h2>5. Claude Code vs Codex 比較</h2>
+    <div class="compare">
+      <div class="compare-card claude">
+        <div class="brand">Claude Code（Anthropic）</div>
+        <ul>
+          <li><strong>形態：</strong> CLI / IDE 拡張 / Web</li>
+          <li><strong>実行環境：</strong> ローカル環境で直接動作</li>
+          <li><strong>コンテキスト：</strong> コードベース全体を読む</li>
+          <li><strong>マルチエージェント：</strong> サブエージェントを並列起動可</li>
+          <li><strong>拡張：</strong> MCP（Model Context Protocol）でツール追加</li>
+          <li><strong>SDK：</strong> Agent SDK でカスタムエージェント構築可</li>
+        </ul>
+      </div>
+      <div class="compare-card codex">
+        <div class="brand">Codex（OpenAI）</div>
+        <ul>
+          <li><strong>形態：</strong> ChatGPT 統合 / CLI</li>
+          <li><strong>実行環境：</strong> クラウド上の隔離コンテナ</li>
+          <li><strong>コンテキスト：</strong> GitHub リポジトリを接続</li>
+          <li><strong>セキュリティ：</strong> タスク実行中はインターネット遮断</li>
+          <li><strong>特化：</strong> コーディングタスクに最適化</li>
+          <li><strong>モデル：</strong> GPT-5.3-Codex（最新）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 重要概念一覧 -->
+  <section>
+    <h2>6. 押さえておきたい重要概念</h2>
+    <table>
+      <thead>
+        <tr><th>用語</th><th>意味</th><th>関連ツール</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Agentic Loop</strong></td>
+          <td>目標達成まで Perceive→Reason→Act→Observe を繰り返すサイクル</td>
+          <td>Claude Code, Codex</td>
+        </tr>
+        <tr>
+          <td><strong>Tool Use / Function Calling</strong></td>
+          <td>LLM が構造化された形式で外部関数を呼び出す仕組み</td>
+          <td>全エージェント基盤</td>
+        </tr>
+        <tr>
+          <td><strong>MCP（Model Context Protocol）</strong></td>
+          <td>AIツールと外部データソースをつなぐオープン標準プロトコル</td>
+          <td>Claude Code</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-Agent</strong></td>
+          <td>複数エージェントが協調して並列にタスクを処理するアーキテクチャ</td>
+          <td>Claude Code, Managed Agents</td>
+        </tr>
+        <tr>
+          <td><strong>RAG（Retrieval Augmented Generation）</strong></td>
+          <td>外部DBから関連情報を取得してLLMの回答精度を高める手法</td>
+          <td>Memory ストア連携</td>
+        </tr>
+        <tr>
+          <td><strong>ReAct</strong></td>
+          <td>Reasoning（思考）と Action（行動）を交互に行うプロンプト戦略</td>
+          <td>Planning 実装パターン</td>
+        </tr>
+        <tr>
+          <td><strong>Guardrails</strong></td>
+          <td>エージェントの行動範囲を制限する安全装置（権限・スコープ設定）</td>
+          <td>Managed Agents, Codex</td>
+        </tr>
+        <tr>
+          <td><strong>Prompt Caching</strong></td>
+          <td>同一コンテキストのトークンをキャッシュしてコスト・速度を改善する機能</td>
+          <td>Claude API</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 7. 公式ドキュメント -->
+  <section>
+    <h2>7. 公式ドキュメント・参考リソース</h2>
+    <div class="links">
+      <a href="https://code.claude.com/docs/en/overview" target="_blank">Claude Code 公式ドキュメント（Overview）</a>
+      <a href="https://platform.claude.com/docs/en/managed-agents/overview" target="_blank">Claude Managed Agents 公式ドキュメント</a>
+      <a href="https://openai.com/index/introducing-codex/" target="_blank">Introducing Codex（OpenAI 公式）</a>
+      <a href="https://developers.openai.com/codex" target="_blank">Codex 開発者ドキュメント（OpenAI）</a>
+      <a href="https://www.ibm.com/think/topics/ai-agents" target="_blank">What Are AI Agents?（IBM）</a>
+      <a href="https://blogs.oracle.com/developers/what-is-the-ai-agent-loop-the-core-architecture-behind-autonomous-ai-systems" target="_blank">The AI Agent Loop アーキテクチャ解説（Oracle）</a>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>
